@@ -266,7 +266,7 @@ public class LombokLightMethodBuilder extends LightMethodBuilder {
     if (!getParameterList().equals(that.getParameterList())) {
       return false;
     }
-    if (null != myReturnTypeCanonicalText) {
+    if (myReturnTypeCanonicalText != null) {
       return myReturnTypeCanonicalText.equals(that.myReturnTypeCanonicalText);
     } else {
       return null == that.myReturnTypeCanonicalText;
