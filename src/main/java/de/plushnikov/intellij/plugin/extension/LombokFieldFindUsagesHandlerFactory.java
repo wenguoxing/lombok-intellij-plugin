@@ -6,6 +6,7 @@ import com.intellij.openapi.project.DumbService;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiField;
+import com.intellij.psi.PsiMethod;
 import com.intellij.psi.util.PsiUtilCore;
 import de.plushnikov.intellij.plugin.psi.LombokLightMethodBuilder;
 import org.jetbrains.annotations.NotNull;
@@ -28,8 +29,11 @@ public class LombokFieldFindUsagesHandlerFactory extends FindUsagesHandlerFactor
       final PsiField psiField = (PsiField) element;
       final PsiClass containingClass = psiField.getContainingClass();
       if (containingClass != null) {
-        return Arrays.stream(containingClass.getAllMethods())
-          .anyMatch(LombokLightMethodBuilder.class::isInstance);
+        for (PsiMethod psiMethod : containingClass.getAllMethods()) {
+          if(psiMethod instanceof LombokLightMethodBuilder) {
+            return true;
+          }
+        }
       }
     }
     return false;
@@ -45,11 +49,12 @@ public class LombokFieldFindUsagesHandlerFactory extends FindUsagesHandlerFactor
         final PsiClass containingClass = psiField.getContainingClass();
         if (containingClass != null) {
 
-          final Collection<PsiElement> elements = new ArrayList<>();
+          final Collection<PsiElement> elements = new ArrayList<PsiElement>();
           processClassMethods(containingClass, psiField, elements);
 
-          Arrays.stream(containingClass.getInnerClasses())
-            .forEach(psiClass -> processClassMethods(psiClass, psiField, elements));
+          for (PsiClass psiClass : containingClass.getInnerClasses()) {
+            processClassMethods(psiClass, psiField, elements);
+          }
 
           return PsiUtilCore.toPsiElementArray(elements);
         }
@@ -57,10 +62,11 @@ public class LombokFieldFindUsagesHandlerFactory extends FindUsagesHandlerFactor
       }
 
       private void processClassMethods(PsiClass containingClass, PsiField refPsiField, Collection<PsiElement> collector) {
-        Arrays.stream(containingClass.getMethods())
-          .filter(LombokLightMethodBuilder.class::isInstance)
-          .filter(psiMethod -> psiMethod.getNavigationElement() == refPsiField)
-          .forEach(collector::add);
+        for (PsiMethod psiMethod : containingClass.getMethods()) {
+          if(psiMethod instanceof LombokLightMethodBuilder && psiMethod.getNavigationElement() == refPsiField) {
+            collector.add(psiMethod);
+          }
+        }
       }
     };
   }

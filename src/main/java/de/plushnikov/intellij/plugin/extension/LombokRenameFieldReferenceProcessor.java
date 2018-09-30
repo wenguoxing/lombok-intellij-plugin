@@ -31,8 +31,11 @@ public class LombokRenameFieldReferenceProcessor extends RenameJavaVariableProce
     if (element instanceof PsiField) {
       final PsiClass containingClass = ((PsiField) element).getContainingClass();
       if (null != containingClass) {
-        return Arrays.stream(containingClass.getAllMethods())
-          .anyMatch(LombokLightMethodBuilder.class::isInstance);
+        for (PsiMethod psiMethod : containingClass.getAllMethods()) {
+          if(psiMethod instanceof LombokLightMethodBuilder){
+            return true;
+          }
+        }
       }
     }
     return false;
